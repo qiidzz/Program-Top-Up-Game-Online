@@ -162,6 +162,7 @@ public class TopUpGameOnline {
         }
 
         JButton updateStatusButton = new JButton("Update Status");
+        JButton deleteButton = new JButton("Delete Data");
 
         updateStatusButton.addActionListener(_ -> {
             int selectedRow = transactionTable.getSelectedRow();
@@ -181,9 +182,31 @@ public class TopUpGameOnline {
             }
         });
 
+        deleteButton.addActionListener(_ -> {
+            int selectedRow = transactionTable.getSelectedRow();
+            if (selectedRow == -1) {
+                JOptionPane.showMessageDialog(adminFrame, "Please select a transaction to delete.");
+                return;
+            }
+
+            int confirmDelete = JOptionPane.showConfirmDialog(adminFrame, "Are you sure you want to delete this transaction?",
+                    "Confirm Delete", JOptionPane.YES_NO_OPTION);
+            if (confirmDelete == JOptionPane.YES_OPTION) {
+                tableModel.removeRow(selectedRow);
+                transactions.remove(selectedRow);
+                JOptionPane.showMessageDialog(adminFrame, "Transaction deleted successfully.");
+            }
+        });
+
         adminFrame.setLayout(new BorderLayout());
         adminFrame.add(scrollPane, BorderLayout.CENTER);
-        adminFrame.add(updateStatusButton, BorderLayout.SOUTH);
+
+        // Add buttons panel with update and delete actions
+        JPanel buttonPanel = new JPanel();
+        buttonPanel.add(updateStatusButton);
+        buttonPanel.add(deleteButton);
+        adminFrame.add(buttonPanel, BorderLayout.SOUTH);
+
         adminFrame.setVisible(true);
     }
 
@@ -325,40 +348,46 @@ public class TopUpGameOnline {
             }
             String name = nameField.getText();
             String email = emailField.getText();
-            users.add(new User(id, name, email, 0, 0, 0));
-            JOptionPane.showMessageDialog(createAccountFrame, "Akun berhasil dibuat!");
+
+            // Add user to list
+            users.add(new User(id, name, email));
+
+            JOptionPane.showMessageDialog(createAccountFrame, "Akun berhasil dibuat.");
+            createAccountFrame.dispose();
         });
 
         createAccountFrame.setVisible(true);
     }
-}
 
-class User {
-    String id;
-    String name;
-    String email;
-    double mlBalance;
-    double ffBalance;
-    double robuxBalance;
+    public static class User {
+        String id;
+        String name;
+        String email;
+        double mlBalance;
+        double ffBalance;
+        double robuxBalance;
 
-    public User(String id, String name, String email, double mlBalance, double ffBalance, double robuxBalance) {
-        this.id = id;
-        this.name = name;
-        this.email = email;
-        this.mlBalance = mlBalance;
-        this.ffBalance = ffBalance;
-        this.robuxBalance = robuxBalance;
-    }
-}
-
-class TableCellRenderer extends DefaultTableCellRenderer implements javax.swing.table.TableCellRenderer {
-    @Override
-    public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-        if (column == 5 && value != null) {
-            ImageIcon imageIcon = new ImageIcon((String) value);
-            Image scaledImage = imageIcon.getImage().getScaledInstance(100, 50, Image.SCALE_SMOOTH);
-            return new JLabel(new ImageIcon(scaledImage));
+        public User(String id, String name, String email) {
+            this.id = id;
+            this.name = name;
+            this.email = email;
+            this.mlBalance = 0;
+            this.ffBalance = 0;
+            this.robuxBalance = 0;
         }
-        return super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+    }
+
+    static class TableCellRenderer extends DefaultTableCellRenderer {
+        @Override
+        public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+            Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+
+            if (value instanceof String && ((String) value).endsWith(".jpg")) {
+                ImageIcon icon = new ImageIcon((String) value);
+                JLabel label = new JLabel(icon);
+                return label;
+            }
+            return c;
+        }
     }
 }
